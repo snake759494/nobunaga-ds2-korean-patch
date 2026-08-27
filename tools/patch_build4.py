@@ -6,7 +6,7 @@
   (sound, graphics, movie, snr) stays byte-identical at its original offset.
 - Only the grown files' FAT entries, header used-size and header CRC change.
 """
-import json, glob, os, struct, sys
+import json, glob, os, struct, sys, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import krtools, msg_rebuild
 import snr_caps as _snr
@@ -134,8 +134,53 @@ def main():
             sylls |= krtools.used_syllables(kr)
 
     c2i = krtools.load_code2idx()
-    pool = [c for c, i in sorted(c2i.items()) if i >= 351]
+
+    # Hangul rides in kanji glyph slots, so a slot whose kanji is STILL printed
+    # somewhere shows that kanji as a random syllable - the "깨짐" players see
+    # (織田家 -> "오다덕", 急襲 -> "색襲").  Count how often each kanji survives
+    # untranslated and hand out the least-used slots first, so the collisions
+    # that remain are on characters the game hardly ever prints.
+    still_used = collections.Counter()
+    def note(text, weight=1):
+        for ch in text or '':
+            try: b = ch.encode('shift_jis')
+            except Exception: continue
+            if len(b) == 2:
+                code = (b[0] << 8) | b[1]
+                if c2i.get(code, 0) >= 351: still_used[code] += weight
+
+    # Every kanji the game can still print gets weighted so it keeps its glyph.
+    # Text we replace is weighted 1 (it only shows if the translation is
+    # rejected); text we do NOT replace, and characters the game composes at
+    # runtime, are weighted heavily so they are never repainted.
+    RUNTIME = ('家氏城殿様国年月日春夏秋冬'
+               '一二三四五六七八九十百千万'
+               '東西南北中大小上下前後内外'
+               '郎助兵衛守')
+    note(RUNTIME, 10_000)
+    done_snr = {u['off'] for u, _ in inplace.values() if u.get('src') == 'common.snr'}
+    for uid, u in units_v1.items():
+        src = u['src']
+        if src == 'common.snr':
+            # a name field that fails to fit is printed as the original kanji,
+            # and these are short strings the game splices together
+            note(u['jp'], 1 if u['off'] in done_snr else 100)
+        elif src == 'arm9.bin':
+            note(u['jp'], 1 if ('arm9', uid) in inplace else 100)
+        else:
+            note(u['jp'], 1 if uid in cand else 100)
+    for uid, u in units_v2.items():
+        note(u['jp'], 1 if uid in cand else 100)
+
+    slots = [c for c, i in sorted(c2i.items()) if i >= 351]
+    untouched = sum(1 for c in slots if c not in still_used)
+    slots.sort(key=lambda c: (still_used.get(c, 0), c))
+    pool = slots
     assert len(sylls) <= len(pool), f'pool exceeded {len(sylls)}'
+    taken = pool[:len(sylls)]
+    hard = sum(1 for c in taken if still_used.get(c, 0) >= 100)
+    print(f'glyph slots {len(slots)}: never-printed {untouched}, '
+          f'syllables {len(sylls)}, slots taken that still print kanji: {hard}')
     smap = {s: pool[i] for i, s in enumerate(sorted(sylls))}
     json.dump({s: hex(c) for s, c in smap.items()},
               open(_os.path.join(WORK, 'syllable_map.json'), 'w', encoding='utf-8'), ensure_ascii=False, indent=0)
