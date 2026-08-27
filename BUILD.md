@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `6EAB11C2`).
+**바이트 단위로 동일**합니다 (CRC32 `7EDC500C`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 6EAB11C2  (matches the published release)
+patched CRC32 7EDC500C  (matches the published release)
 ```
 
 ---
@@ -204,6 +204,28 @@ NCLR(팔레트) / NCGR(타일) / NCER(셀)을 파싱해 셀을 복원한 뒤, �
 **② 갈무리11은 픽셀 폰트입니다.**
 안티에일리어싱을 끄고 12px 또는 24px에서만 렌더링해야 합니다.
 9~11px로 줄이면 자모 획이 뭉개져 덩어리가 됩니다.
+**본문 폰트와 같은 갈무리11을 쓰고, 한 시트(메뉴) 안의 라벨은 모두 같은 크기**로
+그립니다. 버튼 하나만 24px이고 옆 버튼이 12px이면 잘못 만든 것처럼 보입니다.
+
+### 그림은 두고 자막만 올리는 경우
+
+아이콘·엠블럼처럼 **글자와 그림이 같은 색·같은 타일을 쓰는** 셀은 글자를 지우면
+그림이 부서집니다. 이런 셀은 지우지 않고 **흰 글자 + 검은 테두리 자막**을 그 위에
+얹습니다 (`tools/gfx/overlay_labels.py`).
+
+```bash
+python tools/gfx/overlay_labels.py <원본.dat> <라벨.json> <출력.dat>
+```
+
+자막이 원문을 제대로 덮지 못하면 오히려 반쪽짜리가 되므로, 아래에 해당하면
+자동으로 건너뛰고 원문을 유지합니다.
+
+- 한글이 원문 글자 수의 60% 미만 (`はい` 위에 `예` 한 자만 얹히는 경우)
+- 자막 폭이 셀 폭의 45% 미만
+- 셀에 흰색으로 쓸 만큼 밝은 색이 없음 (눌린 상태의 어두운 버튼 변형)
+- 쌍둥이 셀이 이미 같은 타일에 자막을 그림 (두 번 찍히는 것 방지)
+
+대상 시트는 `tools/gfx/apply_all.py` 의 `OVERLAY` 에 있습니다.
 
 ### 자동 손상 검출
 
@@ -293,7 +315,7 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `6EAB11C2` 과 다르게 나옴**
+**CRC가 `7EDC500C` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 

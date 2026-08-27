@@ -260,7 +260,7 @@ def backgrounds(src, W, H, vals, box, room, ink, bg):
         out[y] = vfill
     return out
 
-def layout(text, box, room):
+def layout(text, box, room, force=None):
     """split the ink bbox into equal character columns, sized as large as the
     space inside the frame allows.  Returns (size, [(rect, char), ...])."""
     bx, by, bw, bh = box
@@ -277,6 +277,8 @@ def layout(text, box, room):
     for s in SIZES:
         if s <= rh and all(measure(c, s) <= colw + 1 for c in text):
             size = s; break
+    if force is not None:
+        size = force
     dh = min(rh, max(bh, size))
     dy = max(ry, min(by + (bh - dh)//2, ry + rh - dh))
     out = []
@@ -344,6 +346,20 @@ def main(dat_in, labels_json, dat_out):
         print(json.dumps({'error': 'no NCER', 'file': os.path.basename(dat_in)})); return 1
     nbanks = len(info['ncer']['banks'])
 
+    # ---- one size for the whole sheet.  A menu where one button is 24px and
+    # the one beside it is 12px reads as a mistake, so every label on a sheet
+    # uses the largest size that all of them can manage.
+    sheet_size = None
+    for e in entries:
+        idx = e.get('cell')
+        kr = (e.get('kr') or '').strip()
+        if idx is None or idx >= nbanks or not kr: continue
+        a = analyse(info, idx)
+        if a is None: continue
+        _, _, _, _, _, _, box, room, _ = a
+        s_, _ = layout(kr, box, room)
+        sheet_size = s_ if sheet_size is None else min(sheet_size, s_)
+
     # ---- pass 1: work out what each character column wants, and where two
     #      different characters would fight over the same atlas tiles
     plans = []
@@ -368,7 +384,7 @@ def main(dat_in, labels_json, dat_out):
         # Korean that is much wider than the word it replaces cannot be placed
         # without crowding the frame, so leave those cells in Japanese.
         if measure(widest, 12) > 1.5 * box[2]: continue
-        size, cols = layout(kr, box, room)
+        size, cols = layout(kr, box, room, force=sheet_size)
         if not (jp and len(kr) == len(jp) and len(kr) > 1):
             cols = [(cols[0][0][:2] + (box[2], cols[0][0][3]), kr)]
         items = []

@@ -58,10 +58,29 @@ def skipped(name):
     # text detector keeps latching onto the picture instead.  Not worth it.
     return name in SKIP or name.startswith('C256_')
 
+# Ending is a staff roll of two-line credit blocks - a subtitle cannot stand in
+# for that, so it stays Japanese.  Everything else that we refuse to repaint
+# gets a Korean subtitle laid over the picture instead.
+# Sheets where a subtitle actually reads well: an icon or emblem with a
+# caption along its bottom edge, wide enough for the Korean to stand in for.
+# Everything else here is a wide bar with several Japanese words spread across
+# it, where a subtitle covers one word and leaves the rest - worse than not
+# translating at all - so those stay Japanese.
+OVERLAY = {
+    'C256_SeasonSpring', 'C256_SeasonSummer', 'C256_SeasonFall', 'C256_SeasonWinter',
+    'C256_SouhaMenuShita', 'C256_ShoOptShita', 'C256_ShinbuShita1',
+}
+# Common (はい / いいえ) and ComTutor (START中止 / +進む) carry an icon or a
+# latin prefix inside the same line, so a subtitle covers the Japanese word but
+# not the rest and the button ends up half and half.  They stay Japanese.
+
+def overlay_only(name):
+    return skipped(name) and name in OVERLAY
+
 def prepare(lp):
     """validate + expand one label file; returns (name, entries) or None"""
     name = os.path.splitext(os.path.basename(lp))[0]
-    if name.startswith('_') or skipped(name): return None
+    if name.startswith('_') or (skipped(name) and name not in OVERLAY): return None
     dat = os.path.join(SRC_OBJ, name + '.dat')
     if not os.path.exists(dat):
         print(f'  skip {name}: no .dat'); return None
@@ -102,7 +121,8 @@ def run_one(job):
     tmp = os.path.join(WORK, f'_labels_{name}.json')
     json.dump(entries, open(tmp, 'w', encoding='utf-8'), ensure_ascii=False)
     out = os.path.join(OUT_OBJ, name + '.dat')
-    r = subprocess.run([sys.executable, os.path.join(TOOLS, 'apply_labels.py'),
+    script = 'overlay_labels.py' if overlay_only(name) else 'apply_labels.py'
+    r = subprocess.run([sys.executable, os.path.join(TOOLS, script),
                         dat, tmp, out], capture_output=True, text=True, encoding='utf-8')
     os.remove(tmp)
     return name, len(entries), r.stdout.strip(), os.path.exists(out)
