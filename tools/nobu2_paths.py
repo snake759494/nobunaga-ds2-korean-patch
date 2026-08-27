@@ -28,7 +28,7 @@ PATCH   = os.path.join(REPO, 'nobu2-kr.xdelta')
 
 # CRC32 of the ROM this patch was built against, and of the result.
 ROM_CRC = 0x72C536BA
-OUT_CRC = 0x56CBDC0F
+OUT_CRC = 0x6EAB11C2
 
 def check_rom():
     """fail early and clearly rather than producing a broken ROM"""

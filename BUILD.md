@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `56CBDC0F`).
+**바이트 단위로 동일**합니다 (CRC32 `6EAB11C2`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 56CBDC0F  (matches the published release)
+patched CRC32 6EAB11C2  (matches the published release)
 ```
 
 ---
@@ -92,6 +92,9 @@ data/                    ROM에서 뽑을 수 없는 것들 — 전부 여기
   units_extra*.json      추가 발견 유닛
   snr_units_safe.json    common.snr 에서 "글자가 맞는" 필드 목록
   code2idx.json          SJIS 코드 → 글리프 인덱스 (ARM9 룩업 테이블 리버싱 결과)
+  reference/             네이버 카페 정리글을 옮긴 표 (docs/REFERENCE.md 참고)
+    ryoseikoku.json      52개 율령국: 한자 → [음독, 일본어 읽기]
+    glossary_fix.json    용어·전술 교정표와 '문서를 따르지 않은 항목'
   translations/
     out/                 v1 — 원문 길이에 맞춘 축약 번역 (195 파일)
     out2/                v2 — 확장 예산 자연 번역 (153 파일)
@@ -110,6 +113,8 @@ tools/
   snr_caps.py            common.snr 필드 용량 계산
   patch_build4.py        본 빌더
   verify_*.py            검증
+  apply_reference.py     위 표를 번역 데이터·그래픽 라벨에 적용
+  check_glyph_clash.py   아직 출력되는 한자가 한글 슬롯을 쓰는지 검사
   gfx/                   그래픽 파이프라인 (아래 6장)
   dev/vendor.py          개발용 — 작업본 도구를 저장소로 이식
 
@@ -135,6 +140,27 @@ images/                  변경 전/후 비교 시트 + 대표 컷
 한글로 바뀌어 있을 뿐입니다. 그래서 엔진을 전혀 건드리지 않습니다.
 
 배정표는 빌드할 때마다 `_work/syllable_map.json` 으로 남습니다.
+
+### 아무 슬롯이나 쓰면 안 되는 이유
+
+**아직 화면에 나오는 한자의 슬롯을 가져다 쓰면 그 한자가 한글로 보입니다.**
+v1.9까지 `織田家`가 "오다덕", `急襲`이 "색襲"으로 보이던 것이 이것입니다.
+`家`의 슬롯에 "덕"을 배정해 두면, 게임이 `家`를 출력할 때 "덕"이 그려집니다.
+
+그래서 빌더는 게임이 출력할 수 있는 한자를 먼저 전부 모읍니다.
+
+- `common.snr` 의 모든 이름 필드 (번역이 들어가도, 폭을 넘겨 거부되면 원문이 나옴)
+- ARM9 안의 시스템 문자열
+- 번역되지 않은 msgsec 유닛의 원문
+- `家 氏 城 殿 様 国 年 月 日 春 夏 秋 冬 一二三…` 처럼 게임이 런타임에 붙이는 글자
+
+그런 다음 **한 번도 출력되지 않는 슬롯**에만 한글을 배정합니다.
+3,223칸 중 한 번도 안 쓰이는 칸이 1,336칸, 필요한 음절이 1,060자라
+여유 있게 들어갑니다.
+
+```bash
+python tools/check_glyph_clash.py    # 충돌이 남아 있는지 확인
+```
 
 ### 대사가 들어가는 자리
 
@@ -267,7 +293,7 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `56CBDC0F` 과 다르게 나옴**
+**CRC가 `6EAB11C2` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 
