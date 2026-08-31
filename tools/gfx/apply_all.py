@@ -37,7 +37,16 @@ def expand(name, entries):
     for e in entries:
         for d in dup.get(e['cell'], []):
             if d not in have:
-                out.append({'cell': d, 'jp': e.get('jp', ''), 'kr': e['kr']})
+                copy = {'cell': d, 'jp': e.get('jp', ''), 'kr': e['kr']}
+                # A duplicate animation/state frame must use the same explicit
+                # text window and atlas ownership as its source. If these
+                # fields are dropped, the automatic detector treats the shared
+                # frame as a separate word, creates a false column conflict,
+                # and can veto the source label too.
+                for key in ('manual', 'force', 'skip'):
+                    if key in e:
+                        copy[key] = e[key]
+                out.append(copy)
                 have.add(d)
     return out
 

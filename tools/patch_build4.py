@@ -246,12 +246,20 @@ def main():
         # Demote in order of SMALLEST relative quality loss, not largest byte
         # gain: shaving many nearly-equivalent lines preserves the big, genuinely
         # better expansions (which is the whole point of the quality pass).
+        # Keep fragments whose grammatical suffixes are supplied by runtime
+        # composition. Demoting one silently recreates the reported UI defects:
+        # a particle or space disappears, "...처우를" is shortened, or
+        # "국에 명령" falls back to a clipped command. They cost only a few
+        # bytes; the normal ranking still handles the rest of the file.
+        LOCKED = {118, 132, 133, 134, 135, 189,
+                  1145, 1147, 1555, 2210, 2212,
+                  2425, 2428, 2431, 2455}
         while len(nf) > cap:
             need = len(nf) - cap
             ranked = []
             for u in units:
                 ci = choice.get(u['id'])
-                if ci is None: continue
+                if ci is None or u['id'] in LOCKED: continue
                 cur = len(texts[u['id']])
                 opts = cand[u['id']]
                 nxt = None

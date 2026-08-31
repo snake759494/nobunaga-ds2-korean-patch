@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `7EDC500C`).
+**바이트 단위로 동일**합니다 (CRC32 `69E41344`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 7EDC500C  (matches the published release)
+patched CRC32 69E41344  (matches the published release)
 ```
 
 ---
@@ -315,7 +315,7 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `7EDC500C` 과 다르게 나옴**
+**CRC가 `69E41344` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 

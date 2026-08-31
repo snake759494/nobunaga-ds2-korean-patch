@@ -163,6 +163,59 @@ def analyse(info, idx):
     if left > 20 and left > 0.30 * (left + inside): return None
     return W, H, src, bgs, bg, ink, box, room, erase
 
+def manual_analyse(info, idx, entry):
+    """Return an explicit label layout for artwork the detector cannot classify.
+
+    A few UI elements are icon-shaped or use a shared button atlas. Their
+    colours and text bounds are unambiguous to a human but intentionally fail
+    the conservative automatic detector above. Keep those exceptions in the
+    label data, and still run them through the normal atlas ownership checks.
+    """
+    r = lt.cell_pixels(info, idx)
+    if r is None: return None
+    W, H, src = r
+    m = entry.get('manual') or {}
+
+    def rect(key, default):
+        v = m.get(key, default)
+        if not isinstance(v, (list, tuple)) or len(v) != 4:
+            return tuple(default)
+        return tuple(int(x) for x in v)
+
+    box = rect('box', (0, 0, W, H))
+    room = rect('room', box)
+    erase = rect('erase', box)
+    bg = int(m.get('bg', 0))
+    ink = int(m.get('ink', 15))
+    # These are either transparent label windows or the uniform inner fill of
+    # a shared button sprite, so a flat explicit fill is safe.
+    bgs = {y: bg for y in range(max(0, room[1]), min(H, room[1] + room[3]))}
+    return W, H, src, bgs, bg, ink, box, room, erase
+
+def analyse_entry(info, idx, entry):
+    """Analyse one entry, honouring an explicit manual layout when present."""
+    if entry.get('manual'):
+        return manual_analyse(info, idx, entry)
+    return analyse(info, idx)
+
+def manual_tiles(info, idx, entry):
+    """Atlas tile ids used by the explicitly selected NCER sprites, if any."""
+    nums = (entry.get('manual') or {}).get('sprites')
+    if not nums:
+        return None
+    out = set()
+    for n in nums:
+        try:
+            s = info['ncer']['banks'][idx]['sprites'][int(n)]
+        except (IndexError, TypeError, ValueError):
+            continue
+        tw, th = s['w'] // 8, s['h'] // 8
+        base = s['tile'] * lt.BOUNDARY
+        for ty in range(th):
+            for tx in range(tw):
+                out.add(base + ty * tw + tx)
+    return out or None
+
 def grow(src, W, H, vals, box, room, bgset, limit=6):
     """Widen the bbox until it covers the glyph's decoration.  The layout box is
     the bbox of the core colour only; these labels are drawn with a coloured
@@ -353,8 +406,9 @@ def main(dat_in, labels_json, dat_out):
     for e in entries:
         idx = e.get('cell')
         kr = (e.get('kr') or '').strip()
+        if e.get('skip'): continue
         if idx is None or idx >= nbanks or not kr: continue
-        a = analyse(info, idx)
+        a = analyse_entry(info, idx, e)
         if a is None: continue
         _, _, _, _, _, _, box, room, _ = a
         s_, _ = layout(kr, box, room)
@@ -368,38 +422,44 @@ def main(dat_in, labels_json, dat_out):
         idx = e.get('cell')
         jp = (e.get('jp') or '').strip()
         kr = (e.get('kr') or '').strip()
+        if e.get('skip'): continue
         if idx is None or idx >= nbanks or not kr: continue
-        a = analyse(info, idx)
+        a = analyse_entry(info, idx, e)
         if a is None: continue
         W, H, src, bgs, bg, ink, box, room, erase = a
         # Some banks are mid-animation frames that draw only a sliver of the
         # button.  Their text box is far too narrow for the label, and writing
         # into it both looks wrong and damages the tiles the full frame shares.
         widest = max(kr.split('\n'), key=len)
-        if box[2] < MIN_COL * len(widest): continue
+        forced = bool(e.get('manual') or e.get('force'))
+        if not forced and box[2] < MIN_COL * len(widest): continue
         # And the reverse: a box far wider than the Korean needs means the
         # colour analysis grabbed an icon or a frame as well as the caption.
         # Repainting that would wipe out the button, so leave the cell alone.
-        if box[2] > 2.6 * measure(widest, 12): continue
+        if not forced and box[2] > 2.6 * measure(widest, 12): continue
         # Korean that is much wider than the word it replaces cannot be placed
         # without crowding the frame, so leave those cells in Japanese.
-        if measure(widest, 12) > 1.5 * box[2]: continue
+        if not forced and measure(widest, 12) > 1.5 * box[2]: continue
         size, cols = layout(kr, box, room, force=sheet_size)
         if not (jp and len(kr) == len(jp) and len(kr) > 1):
             cols = [(cols[0][0][:2] + (box[2], cols[0][0][3]), kr)]
         items = []
+        allowed = manual_tiles(info, idx, e)
         for col, ch in cols:
             ps = pixels_in(src, W, H, col)
+            if allowed is not None:
+                ps = {p for p in ps if p // 64 in allowed}
             for p in ps: want[p].add(ch)
             items.append((col, ch, ps))
-        plans.append((idx, W, H, src, bgs, bg, ink, size, room, erase, items))
+        plans.append((idx, W, H, src, bgs, bg, ink, size, room, erase,
+                      items, allowed))
 
     conflicted = {p for p, cs in want.items() if len(cs) > 1}
 
     # ---- pass 2: fix the repaint rectangle of every label that survived
     jobs = []
     skipped = 0
-    for idx, W, H, src, bgs, bg, ink, size, room, erase, items in plans:
+    for idx, W, H, src, bgs, bg, ink, size, room, erase, items, allowed in plans:
         # all or nothing: a half-translated word ("데모플レ이") is worse than
         # leaving the original, so one contested character vetoes the label
         if any(ps & conflicted for _, _, ps in items):
@@ -414,14 +474,15 @@ def main(dat_in, labels_json, dat_out):
         ry = max(roy, min([c[1] for c, _ in cols] + [erase[1]]) - PAD)
         ry1 = min(roy + roh, max([c[1] + c[3] for c, _ in cols] + [erase[1] + erase[3]]) + PAD)
         if rx1 <= rx or ry1 <= ry: continue
-        jobs.append((idx, W, H, src, bgs, bg, ink, size, cols, (rx, ry, rx1, ry1)))
+        jobs.append((idx, W, H, src, bgs, bg, ink, size, cols,
+                     (rx, ry, rx1, ry1), allowed))
 
     # ---- pass 3: a cell layers a text sprite over a background sprite that
     # other labelled cells reuse at a different offset.  Any atlas pixel that
     # such a cell shows outside its own text rectangle must stay untouched, or
     # writes leak out as stray marks elsewhere on the screen.
     exposed, owned = set(), set()
-    for _, W, H, src, _, _, _, _, _, (rx, ry, rx1, ry1) in jobs:
+    for _, W, H, src, _, _, _, _, _, (rx, ry, rx1, ry1), _ in jobs:
         for y in range(H):
             inside = ry <= y < ry1
             for x in range(W):
@@ -439,7 +500,7 @@ def main(dat_in, labels_json, dat_out):
     claimed = set()
     drawn = 0
     vals = info['vals']
-    for idx, W, H, src, bgs, bg, ink, size, cols, (rx, ry, rx1, ry1) in jobs:
+    for idx, W, H, src, bgs, bg, ink, size, cols, (rx, ry, rx1, ry1), allowed in jobs:
         canvas = Image.new('L', (rx1 - rx, ry1 - ry), 255)
         for c, ch in cols:
             # a column narrower than the glyph would clip its left edge, so
@@ -455,6 +516,8 @@ def main(dat_in, labels_json, dat_out):
                 if s_ is None: continue
                 own.add(s_[0]); seen += 1
                 if s_[0]*64 + s_[1] in claimed: taken += 1
+        if allowed is not None:
+            own = set(allowed)
         # A twin cell one pixel away has already rewritten most of these tiles.
         # Painting the leftover fringe would double the strokes, so stand down -
         # the twin's Hangul is already what this cell displays.
