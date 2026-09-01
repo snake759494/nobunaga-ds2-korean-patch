@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `B000FCB8`).
+**바이트 단위로 동일**합니다 (CRC32 `29A0C003`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 B000FCB8  (matches the published release)
+patched CRC32 29A0C003  (matches the published release)
 ```
 
 ---
@@ -220,15 +220,18 @@ NCLR(팔레트) / NCGR(타일) / NCER(셀)을 파싱해 셀을 복원한 뒤, �
 python tools/gfx/overlay_labels.py <원본.dat> <라벨.json> <출력.dat>
 ```
 
-자막이 원문을 제대로 덮지 못하면 오히려 반쪽짜리가 되므로, 아래에 해당하면
-자동으로 건너뛰고 원문을 유지합니다.
+일러스트 캡션은 기본적으로 그림 위에 자막을 얹습니다. 원문이 가장자리로
+비치는 셀은 라벨 JSON의 `manual.replace` 영역을 사용해 캡션 패널로 교체합니다.
+그림 바깥은 건드리지 않으며, 아래 조건에 해당하는 일반 자막은 자동으로 건너뛰고
+원문을 유지합니다.
 
 - 한글이 원문 글자 수의 60% 미만 (`はい` 위에 `예` 한 자만 얹히는 경우)
 - 자막 폭이 셀 폭의 45% 미만
 - 셀에 흰색으로 쓸 만큼 밝은 색이 없음 (눌린 상태의 어두운 버튼 변형)
 - 쌍둥이 셀이 이미 같은 타일에 자막을 그림 (두 번 찍히는 것 방지)
 
-대상 시트는 `tools/gfx/apply_all.py` 의 `OVERLAY` 에 있습니다.
+대상 시트는 `tools/gfx/apply_all.py` 의 `OVERLAY` 에 있고, 교체 영역은 각
+`data/gfxlabels/C256_*.json`의 `manual.replace`에 기록되어 있습니다.
 
 ### 자동 손상 검출
 
@@ -318,10 +321,10 @@ python tools/verify_bg_patch.py
 ### 제외된 파일 되살리기
 
 `tools/gfx/apply_all.py` 의 `SKIP` 과 `skipped()` 를 보세요. 일러스트에 캡션이
-얹힌 `C256_*` 계열은 일부 셀이 자막 오버레이 또는 안전한 건너뛰기로 처리되고,
-스태프롤 `Ending`만 전체 제외합니다. `Common`·`ComTutor`·`SaveLoadShita`는
-공유 아틀라스 안전 검사를 통과한 짧은 UI 라벨을 적용합니다. 새 셀을 되살릴 때는
-먼저 해당 파일의 라벨 검출과 공유 타일 충돌을 검증해야 합니다.
+얹힌 `C256_*` 계열은 그림을 보존하는 자막 또는 `manual.replace` 캡션 패널로
+처리되고, 스태프롤 `Ending`만 전체 제외합니다. `Common`·`ComTutor`·
+`SaveLoadShita`는 공유 아틀라스 안전 검사를 통과한 짧은 UI 라벨을 적용합니다.
+새 셀을 되살릴 때는 먼저 해당 파일의 라벨 검출과 공유 타일 충돌을 검증해야 합니다.
 
 ---
 
@@ -338,7 +341,7 @@ python tools/verify_bg_patch.py
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `B000FCB8` 과 다르게 나옴**
+**CRC가 `29A0C003` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 

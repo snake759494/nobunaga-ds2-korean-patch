@@ -1,21 +1,16 @@
 [
  {
   "file": "ButaiHenseiShita",
-  "cells": 11,
-  "sheets": 1
- },
- {
-  "file": "Common",
-  "cells": 18,
-  "sheets": 1
- },
- {
-  "file": "ComTutor",
   "cells": 16,
   "sheets": 1
  },
  {
   "file": "C256_SeasonFall",
+  "cells": 1,
+  "sheets": 1
+ },
+ {
+  "file": "C256_SeasonSpring",
   "cells": 1,
   "sheets": 1
  },
@@ -35,13 +30,28 @@
   "sheets": 1
  },
  {
+  "file": "C256_ShoMainShita",
+  "cells": 6,
+  "sheets": 1
+ },
+ {
   "file": "C256_ShoOptShita",
-  "cells": 3,
+  "cells": 4,
   "sheets": 1
  },
  {
   "file": "C256_SouhaMenuShita",
   "cells": 2,
+  "sheets": 1
+ },
+ {
+  "file": "ComTutor",
+  "cells": 5,
+  "sheets": 1
+ },
+ {
+  "file": "Common",
+  "cells": 5,
   "sheets": 1
  },
  {
@@ -70,28 +80,28 @@
   "sheets": 3
  },
  {
+  "file": "SaveLoadShita",
+  "cells": 6,
+  "sheets": 1
+ },
+ {
   "file": "SaveLoadUe",
   "cells": 1,
   "sheets": 1
  },
  {
-  "file": "SaveLoadShita",
-  "cells": 46,
-  "sheets": 1
- },
- {
   "file": "SenryakuHannyou",
-  "cells": 133,
+  "cells": 137,
   "sheets": 6
  },
  {
   "file": "SenryakuMainShita",
-  "cells": 124,
+  "cells": 125,
   "sheets": 6
  },
  {
   "file": "SenryakuMainUe",
-  "cells": 10,
+  "cells": 13,
   "sheets": 1
  },
  {
@@ -101,7 +111,7 @@
  },
  {
   "file": "ShoInpNum",
-  "cells": 126,
+  "cells": 130,
   "sheets": 6
  },
  {
@@ -121,7 +131,7 @@
  },
  {
   "file": "SouhaHenseiShita",
-  "cells": 5,
+  "cells": 6,
   "sheets": 1
  },
  {
@@ -131,7 +141,7 @@
  },
  {
   "file": "SouhaUe",
-  "cells": 28,
+  "cells": 29,
   "sheets": 2
  },
  {

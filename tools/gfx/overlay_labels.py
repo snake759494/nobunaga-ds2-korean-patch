@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-"""Draw a Korean subtitle ON TOP of a sprite cell, leaving the artwork intact.
+"""Draw a Korean caption on a sprite cell.
 
 Some menus are pictures with the Japanese baked into them - a brush-and-scroll
 icon captioned 作成, an emblem reading 中断データ, a cherry-blossom disc with a
 big 春.  Erasing the text there destroys the picture, because the letters and
 the drawing share the same colours and often the same tiles.
 
-So instead of erasing, this overlays the Korean the way a subtitle works:
-white fill with a black outline, laid over the original caption.  The art
-stays; the Korean is readable against anything behind it.
+By default this overlays the Korean the way a subtitle works: white fill with
+a black outline, laid over the original caption.  For small captions whose
+Japanese remains visible around the subtitle, label data can opt into a
+``manual.replace`` rectangle.  That mode paints a compact caption panel first
+and then draws the Korean on it, so the translated asset contains no leftover
+Japanese while the surrounding artwork remains unchanged.
 
 Usage: python overlay_labels.py <dat-in> <labels.json> <dat-out>
 """
@@ -80,6 +83,94 @@ def render(text, size):
                     edge.add(p)
     return img.size, set(fill), edge
 
+def rect_value(manual, key, default, W, H):
+    """Read a clipped [x, y, w, h] rectangle from a manual entry."""
+    raw = manual.get(key, default)
+    if not isinstance(raw, (list, tuple)) or len(raw) != 4:
+        raw = default
+    x, y, w, h = (int(v) for v in raw)
+    x = max(0, min(W, x)); y = max(0, min(H, y))
+    w = max(0, min(W - x, w)); h = max(0, min(H - y, h))
+    return x, y, w, h
+
+def replace_caption(info, idx, entry, claimed, rects):
+    """Replace a manually selected artwork caption with a solid caption panel.
+
+    C256 sheets are 8bpp, but the NCER still points each visible pixel back to
+    its NCGR byte.  Restricting the write to the selected cell rectangle keeps
+    the operation deterministic and lets duplicate animation cells share the
+    same rewritten tiles without writing a second copy of the text.
+    """
+    r = lt.cell_pixels(info, idx)
+    if r is None:
+        return False
+    W, H, src = r
+    manual = entry.get('manual') or {}
+    cover = rect_value(manual, 'cover', (0, 0, W, H), W, H)
+    text_box = rect_value(manual, 'text_box', cover, W, H)
+    if cover[2] <= 0 or cover[3] <= 0 or text_box[2] <= 0 or text_box[3] <= 0:
+        return False
+
+    kr = (entry.get('kr') or '').strip().replace(chr(10), ' ')
+    if not kr:
+        return False
+    ink_pair = palette_ink(info, src, W, H)
+    if ink_pair is None:
+        return False
+    white, black = ink_pair
+    # Some C256 animation states share the same NCGR tiles but select a
+    # different palette bank. A value that is white in one bank can be dark
+    # in the other, so label data may provide a value bright in every bank.
+    white = int(manual.get('ink', white))
+    black = int(manual.get('outline', black))
+    backdrop = int(manual.get('bg', black))
+    size = int(entry.get('size', 12))
+    if size not in SIZES:
+        size = 12
+    while size > 12 and (measure(kr, size) + 2 > text_box[2] or size + 4 > text_box[3]):
+        size = 12
+    (tw, th), fill, edge = render(kr, size)
+    if tw > text_box[2] or th > text_box[3]:
+        return False
+
+    # If this cell is an animation duplicate of an already handled cell, the
+    # NCGR bytes already carry the same panel and Korean caption.
+    keys = set()
+    for y in range(cover[1], cover[1] + cover[3]):
+        for x in range(cover[0], cover[0] + cover[2]):
+            s = src[y][x]
+            if s:
+                keys.add(s[0] * 64 + s[1])
+    if keys and len(keys & claimed) >= 0.90 * len(keys):
+        # Keep the audit rectangle for duplicate animation cells too.  Their
+        # NCGR values were changed by the first cell, so the audit must treat
+        # the same visual caption area as intentional in every duplicate.
+        rects[str(idx)] = [cover[0], cover[1], cover[0] + cover[2], cover[1] + cover[3]]
+        return False
+
+    vals = info['vals']
+    for y in range(cover[1], cover[1] + cover[3]):
+        for x in range(cover[0], cover[0] + cover[2]):
+            s = src[y][x]
+            if not s:
+                continue
+            key = s[0] * 64 + s[1]
+            vals[key] = backdrop
+            claimed.add(key)
+
+    ox = text_box[0] + (text_box[2] - tw) // 2
+    oy = text_box[1] + (text_box[3] - th) // 2
+    for x, y in edge:
+        X, Y = ox + x, oy + y
+        if 0 <= X < W and 0 <= Y < H and src[Y][X]:
+            vals[src[Y][X][0] * 64 + src[Y][X][1]] = black
+    for x, y in fill:
+        X, Y = ox + x, oy + y
+        if 0 <= X < W and 0 <= Y < H and src[Y][X]:
+            vals[src[Y][X][0] * 64 + src[Y][X][1]] = white
+    rects[str(idx)] = [cover[0], cover[1], cover[0] + cover[2], cover[1] + cover[3]]
+    return True
+
 def main(dat_in, labels_json, dat_out):
     entries = json.load(open(labels_json, encoding='utf-8-sig'))
     info = ncer.load(dat_in)
@@ -134,6 +225,12 @@ def main(dat_in, labels_json, dat_out):
         if r is None:
             skipped += 1; continue
         W, H, src = r
+        if (e.get('manual') or {}).get('replace'):
+            if replace_caption(info, idx, e, claimed, rects):
+                drawn += 1
+            else:
+                skipped += 1
+            continue
         ink = palette_ink(info, src, W, H)
         if ink is None or W < 20 or H < 14:
             skipped += 1; continue

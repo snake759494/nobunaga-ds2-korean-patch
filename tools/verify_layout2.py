@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""Verify v1.13: only intended ARM9/text/graphics/background regions, msg FAT
+"""Verify v1.14: only intended ARM9/text/graphics/background regions, msg FAT
 entries, header used-size+CRC, and the previously-unused ROM tail may differ."""
 import json, struct, os
 import os as _os, sys as _sys

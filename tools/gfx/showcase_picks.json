@@ -19,5 +19,10 @@
             ["MainKunisentaku", 28], ["MainKunisentaku", 31]]},
  {"title": "쟁패 시나리오", "slug": "scenario",
   "cells": [["SouhaUe", 33], ["SouhaUe", 38], ["SouhaUe", 45],
-            ["SouhaUe", 49], ["SouhaUe", 53], ["SouhaUe", 34]]}
+            ["SouhaUe", 49], ["SouhaUe", 53], ["SouhaUe", 34]]},
+ {"title": "그림 캡션", "slug": "subtitle",
+  "cells": [["C256_ShinbuShita1", 0], ["C256_ShinbuShita1", 5],
+            ["C256_SeasonSpring", 0], ["C256_SeasonSummer", 0],
+            ["C256_SeasonFall", 0], ["C256_SeasonWinter", 0],
+            ["C256_SouhaMenuShita", 0], ["C256_ShoOptShita", 0]]}
 ]

@@ -1,6 +1,6 @@
 [
-  {"cell": 0, "jp": "中断データ", "kr": "이어하기"},
-  {"cell": 3, "jp": "中断データ", "kr": "이어하기"},
-  {"cell": 5, "jp": "初めから", "kr": "처음부터"},
-  {"cell": 8, "jp": "初めから", "kr": "처음부터"}
+  {"cell": 0, "jp": "中断データ", "kr": "이어하기", "size": 12, "manual": {"replace": true, "cover": [0, 34, 64, 30], "text_box": [0, 38, 64, 22], "bg": 1, "ink": 239, "outline": 1}},
+  {"cell": 3, "jp": "中断データ", "kr": "이어하기", "size": 12, "manual": {"replace": true, "cover": [0, 34, 64, 30], "text_box": [0, 38, 64, 22], "bg": 1, "ink": 239, "outline": 1}},
+  {"cell": 5, "jp": "初めから", "kr": "처음부터", "size": 12, "manual": {"replace": true, "cover": [0, 34, 64, 30], "text_box": [0, 38, 64, 22], "bg": 1, "ink": 239, "outline": 1}},
+  {"cell": 8, "jp": "初めから", "kr": "처음부터", "size": 12, "manual": {"replace": true, "cover": [0, 34, 64, 30], "text_box": [0, 38, 64, 22], "bg": 1, "ink": 239, "outline": 1}}
 ]
