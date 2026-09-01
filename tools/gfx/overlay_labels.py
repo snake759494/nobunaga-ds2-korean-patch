@@ -94,6 +94,8 @@ def main(dat_in, labels_json, dat_out):
     # next is 12px looks broken, so pick the largest size every label can use.
     usable = []
     for e in entries:
+        if e.get('skip'):
+            continue
         idx = e.get('cell')
         kr = (e.get('kr') or '').strip().replace(chr(10), ' ')
         if idx is None or idx >= nbanks or not kr: continue
@@ -103,7 +105,13 @@ def main(dat_in, labels_json, dat_out):
         if W < 20 or H < 14: continue
         usable.append((kr, W, H))
     size = None
+    forced_sizes = {int(e['size']) for e in entries
+                    if not e.get('skip') and e.get('size') in SIZES}
+    if len(forced_sizes) == 1:
+        size = next(iter(forced_sizes))
     for s_ in SIZES:
+        if size is not None:
+            break
         if usable and all(s_ + 4 <= H and measure(kr, s_) + 2 <= W
                           for kr, W, H in usable):
             size = s_; break
@@ -114,6 +122,10 @@ def main(dat_in, labels_json, dat_out):
     drawn = skipped = 0
     rects = {}
     for e in entries:
+        if e.get('skip'):
+            skipped += 1
+            continue
+        forced = bool(e.get('force'))
         idx = e.get('cell')
         kr = (e.get('kr') or '').strip().replace('\n', ' ')
         if idx is None or idx >= nbanks or not kr:
@@ -127,18 +139,18 @@ def main(dat_in, labels_json, dat_out):
             skipped += 1; continue
         white, black = ink
 
-        if size + 4 > H or measure(kr, size) + 2 > W:
+        if not forced and (size + 4 > H or measure(kr, size) + 2 > W):
             skipped += 1; continue
-        if measure(kr, size) / max(len(kr), 1) < MIN_COL:
+        if not forced and measure(kr, size) / max(len(kr), 1) < MIN_COL:
             skipped += 1; continue
         (tw, th), fill, edge = render(kr, size)
-        if tw > W or th > H:
+        if not forced and (tw > W or th > H):
             skipped += 1; continue
 
         # A subtitle only works if it is big enough to stand in for the line it
         # covers.  Much narrower than the cell and the Japanese pokes out at
         # both ends, which reads worse than leaving the cell alone.
-        if tw < MIN_COVER * W:
+        if not forced and tw < MIN_COVER * W:
             skipped += 1; continue
 
         ox = (W - tw) // 2

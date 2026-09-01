@@ -43,7 +43,7 @@ def expand(name, entries):
                 # fields are dropped, the automatic detector treats the shared
                 # frame as a separate word, creates a false column conflict,
                 # and can veto the source label too.
-                for key in ('manual', 'force', 'skip'):
+                for key in ('manual', 'force', 'skip', 'size'):
                     if key in e:
                         copy[key] = e[key]
                 out.append(copy)
@@ -55,11 +55,10 @@ def expand(name, entries):
 # ComTutor.dat mixes a button icon (START, +) into the same text row, and the
 # plate it sits on defeats the background detection - the 2 cells are not worth
 # the risk.  Both are left in Japanese.
-# Common.dat holds the tiny yes/no chips: the words are only a few pixels tall
-# on a plate the same size, and the text detector cannot separate them.
-# SaveLoadShita paints the slot number into the same tiles as the caption,
-# so rewriting the caption chews up the digit.
-SKIP = {'Ending', 'ComTutor', 'Common', 'SaveLoadShita'}
+# Ending.dat is the only non-C256 sheet still excluded.  Common, ComTutor and
+# SaveLoadShita have conservative atlas-aware layouts and are part of the
+# shipped translation now; their duplicate frames are expanded below.
+SKIP = {'Ending'}
 
 def skipped(name):
     # C256_* are the 256-colour illustration sheets - emblems, season art,
@@ -78,10 +77,10 @@ def skipped(name):
 OVERLAY = {
     'C256_SeasonSpring', 'C256_SeasonSummer', 'C256_SeasonFall', 'C256_SeasonWinter',
     'C256_SouhaMenuShita', 'C256_ShoOptShita', 'C256_ShinbuShita1',
+    'C256_ShoMainShita',
 }
-# Common (はい / いいえ) and ComTutor (START中止 / +進む) carry an icon or a
-# latin prefix inside the same line, so a subtitle covers the Japanese word but
-# not the rest and the button ends up half and half.  They stay Japanese.
+# Common, ComTutor and SaveLoadShita use the normal shared-atlas redraw path.
+# They were previously skipped because the first detector was too conservative.
 
 def overlay_only(name):
     return skipped(name) and name in OVERLAY

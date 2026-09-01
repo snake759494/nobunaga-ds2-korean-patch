@@ -94,6 +94,8 @@ def step5_assemble():
 def step6_verify():
     head(6, 'verify')
     run(os.path.join(TOOLS, 'verify_snr_safe.py'))
+    run(os.path.join(TOOLS, 'verify_formal_ui.py'))
+    run(os.path.join(TOOLS, 'verify_bg_patch.py'))
     run(os.path.join(TOOLS, 'verify_layout2.py'))
     run(os.path.join(GFX, 'check_damage.py'))
     crc = zlib.crc32(open(ROM_OUT, 'rb').read()) & 0xFFFFFFFF

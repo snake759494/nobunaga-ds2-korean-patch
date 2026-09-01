@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `69E41344`).
+**바이트 단위로 동일**합니다 (CRC32 `B000FCB8`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 69E41344  (matches the published release)
+patched CRC32 B000FCB8  (matches the published release)
 ```
 
 ---
@@ -74,7 +74,7 @@ python build.py --steps 4,5,6      # 그래픽부터 다시
 | 2 | extract | FNT/FAT를 걸어 파일 282개, ARM9/ARM7, `manifest.json` 추출 |
 | 3 | stage | `data/` 의 번역문·라벨·셀 매니페스트를 `_work/` 로 복사 |
 | 4 | graphics | 스프라이트 라벨을 한글로 다시 그림 → `_work/fs_gfx/obj/` |
-| 5 | assemble | 폰트 생성 + 텍스트 인코딩 + ROM 조립 |
+| 5 | assemble | 폰트 생성 + 텍스트 인코딩 + CSK 배경 패치 + ROM 조립 |
 | 6 | verify | 의도한 곳만 바뀌었는지 3중 검증 |
 | 7 | patch | xdelta 생성 |
 
@@ -95,6 +95,7 @@ data/                    ROM에서 뽑을 수 없는 것들 — 전부 여기
   reference/             네이버 카페 정리글을 옮긴 표 (docs/REFERENCE.md 참고)
     ryoseikoku.json      52개 율령국: 한자 → [음독, 일본어 읽기]
     glossary_fix.json    용어·전술 교정표와 '문서를 따르지 않은 항목'
+    title_bottom_clean.png  이슈 #4 제보의 깨끗한 하단 타이틀 화면 기준 그림
   translations/
     out/                 v1 — 원문 길이에 맞춘 축약 번역 (195 파일)
     out2/                v2 — 확장 예산 자연 번역 (153 파일)
@@ -110,6 +111,8 @@ tools/
   nds_extract.py         ROM → 파일시스템 + ARM9/ARM7 + manifest
   krtools.py             한글 인코딩, 음절 풀 할당, 번역 검증
   msg_rebuild.py         msgsec 컨테이너 재조립 (내부 포인터 재계산)
+  bg_csk.py              GrpBG CSK 압축·해제 (ARM9 디코더와 동일한 문법)
+  bg_patch.py            하단 타이틀 정적 안내문 제거
   snr_caps.py            common.snr 필드 용량 계산
   patch_build4.py        본 빌더
   verify_*.py            검증
@@ -255,6 +258,8 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 | 검사 | 확인하는 것 |
 |---|---|
 | `verify_snr_safe.py` | `common.snr` 의 **텍스트 필드 밖 바이트가 0개** 변경 — 무장 얼굴 번호 같은 이진 필드 보호 |
+| `verify_formal_ui.py` | 선택된 일반 UI 2,000여 건이 하십시오체·격식 질문형을 유지하고, 고정폭 후보가 다시 비격식형으로 되돌아가지 않는지 확인 |
+| `verify_bg_patch.py` | GrpBG 123번 블록만 변경, Info/FAT 오프셋 유지, 깨끗한 256×192 화면으로 복원되는지 확인 |
 | `verify_layout2.py` | FNT·ARM7 동일, FAT 282엔트리 겹침 0, 허용 구역 밖 변경 0 |
 | `check_damage.py` | 그래픽에서 허용 사각형 밖으로 샌 픽셀 집계 |
 
@@ -263,6 +268,11 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 `check_damage.py` 가 보고하는 "leaked" 픽셀 대부분은 **같은 그림을 공유하는
 쌍둥이 셀**이 번역 결과를 함께 보여주는 정상 동작입니다. 실제 손상인지는
 `compare_cells.py` 로 눈으로 확인해야 합니다.
+
+일반 UI의 존댓말 검사는 `tools/formal_ui.py`의 문장 단위·고정폭 축약표를
+적용한 뒤, 빌더가 실제로 선택한 후보를 `_work/formal_ui_selected.json`에
+기록해 검사합니다. 시나리오 서술과 무장 열전처럼 의도적으로 문체를 보존한
+영역은 검사 대상에서 제외합니다.
 
 ---
 
@@ -293,12 +303,25 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 한글이 원문보다 1.5배 넘게 넓거나, 글자당 폭이 7px 미만이면 자동으로
 건너뜁니다.
 
+### 정적 배경 패치
+
+시작 화면 하단 안내문은 스프라이트가 아니라 `/bg/GrpBG.dat`의 123번 CSK
+블록에 포함되어 있습니다. `data/reference/title_bottom_clean.png`을 해당 블록의
+기존 8bpp 팔레트로 양자화해 타일 픽셀만 다시 압축하며, `GrpBGInfo.dat`의 블록
+오프셋과 파일 크기는 바꾸지 않습니다. 에뮬레이터 없이도 다음 검사를 직접 실행할
+수 있습니다.
+
+```bash
+python tools/verify_bg_patch.py
+```
+
 ### 제외된 파일 되살리기
 
 `tools/gfx/apply_all.py` 의 `SKIP` 과 `skipped()` 를 보세요. 일러스트에 캡션이
-얹힌 `C256_*` 계열과 `Common`·`ComTutor`·`SaveLoadShita`·`Ending` 은 글자와
-그림을 분리할 수 없어 제외했습니다. 되살리려면 그 파일들의 라벨 검출을
-먼저 개선해야 합니다.
+얹힌 `C256_*` 계열은 일부 셀이 자막 오버레이 또는 안전한 건너뛰기로 처리되고,
+스태프롤 `Ending`만 전체 제외합니다. `Common`·`ComTutor`·`SaveLoadShita`는
+공유 아틀라스 안전 검사를 통과한 짧은 UI 라벨을 적용합니다. 새 셀을 되살릴 때는
+먼저 해당 파일의 라벨 검출과 공유 타일 충돌을 검증해야 합니다.
 
 ---
 
@@ -315,7 +338,7 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `69E41344` 과 다르게 나옴**
+**CRC가 `B000FCB8` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 

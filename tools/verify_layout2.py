@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
-"""Verify v1.3: only arm9 / msgsec / common.snr content, msg FAT entries,
-header used-size+CRC, and the previously-unused ROM tail may differ."""
+"""Verify v1.13: only intended ARM9/text/graphics/background regions, msg FAT
+entries, header used-size+CRC, and the previously-unused ROM tail may differ."""
 import json, struct, os
 import os as _os, sys as _sys
 _sys.path[:0] = [_os.path.dirname(_os.path.abspath(__file__)),
@@ -29,6 +29,8 @@ for f in manifest['files']:
     p = f['path']
     if p.startswith('/obj/') and os.path.basename(p) in gfx_names:
         allowed.append((f['start'], f['start'] + f['size']))  # label-translated graphics
+    if p == '/bg/GrpBG.dat':
+        allowed.append((f['start'], f['start'] + f['size']))  # CSK title-screen fix
     if '/msg/msgsec' in p or p == '/scenario/common.snr':
         allowed.append((f['start'], f['start'] + f['size']))  # old slot (rewritten or freed)
     if f['id'] in msg_ids:
@@ -59,6 +61,8 @@ for f in manifest['files']:
     if f['id'] in msg_ids or f['path'] == '/scenario/common.snr':
         continue
     if f['path'].startswith('/obj/') and os.path.basename(f['path']) in gfx_names:
+        continue
+    if f['path'] == '/bg/GrpBG.dat':
         continue
     s, sz = f['start'], f['size']
     if a[s:s+sz] != b[s:s+sz]:

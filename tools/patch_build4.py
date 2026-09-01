@@ -9,6 +9,8 @@
 import json, glob, os, struct, sys, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import krtools, msg_rebuild
+import bg_patch
+import formal_ui
 import snr_caps as _snr
 import os as _os, sys as _sys
 _sys.path[:0] = [_os.path.dirname(_os.path.abspath(__file__)),
@@ -81,20 +83,34 @@ def main():
         budgets_of[uid] = u['lines']
         opts = []
         for src_tr, tag in ((tr2, 'v2'), (tr3, 'v3'), (tr1, 'v1')):
-            kr = src_tr.get(uid)
-            if kr is None: continue
-            kr = trim(fix(kr))
-            if krtools.check_translation(kr, u['lines'])[0]:
-                opts.append((tag, kr))
+            raw = src_tr.get(uid)
+            if raw is None: continue
+            # A formal ending can cost one or more glyph slots.  Prefer it,
+            # but retain the original candidate when the formalized form no
+            # longer fits the unit's byte/line budget.
+            # Trim before formalization as well as after it.  Message source
+            # candidates often carry invisible full-width padding at the end
+            # of a line; leaving that padding in the phrase prevents a
+            # complete-record rewrite from matching, so the size pass can
+            # accidentally fall back to the informal candidate.
+            base = trim(fix(raw))
+            variants = [fix(formal_ui.formalize(u['src'], base)), base]
+            for kr in variants:
+                if krtools.check_translation(kr, u['lines'])[0] and (tag, kr) not in opts:
+                    opts.append((tag, kr))
+                    break
         if opts: cand[uid] = opts
     for uid, u in units_v1.items():
         if not u['src'].startswith('msgsec') or uid in cand: continue
         kr = tr1.get(uid)
         if kr is None: continue
-        kr = fix(kr)
-        if krtools.check_translation(kr, u['lines'])[0]:
-            cand[uid] = [('v1', kr)]
-            budgets_of[uid] = u['lines']
+        base = trim(fix(kr))
+        variants = [fix(formal_ui.formalize(u['src'], base)), base]
+        for candidate in variants:
+            if krtools.check_translation(candidate, u['lines'])[0]:
+                cand[uid] = [('v1', candidate)]
+                budgets_of[uid] = u['lines']
+                break
 
     sylls = set()
     for opts in cand.values():
@@ -223,6 +239,7 @@ def main():
 
     by_src = msg_rebuild.load_units()
     new_files = {}
+    selected_formal = []
     stats = {'v2': 0, 'v3': 0, 'v1': 0, 'jp': 0}
     demoted = []
     for name in sorted(by_src):
@@ -253,7 +270,15 @@ def main():
         # bytes; the normal ranking still handles the rest of the file.
         LOCKED = {118, 132, 133, 134, 135, 189,
                   1145, 1147, 1555, 2210, 2212,
-                  2425, 2428, 2431, 2455}
+                  2425, 2428, 2431, 2455,
+                  # Issue #7's fixed-width records must keep their formal
+                  # candidate even when the section is trimmed to the
+                  # proven-safe ceiling.  Without this, the size pass can
+                  # silently demote a corrected sentence back to its raw
+                  # informal fallback.
+                  1975, 2109, 2110, 2150, 2166, 2167, 2190,
+                  2486, 2497, 3112, 3162, 3204, 3209, 3232,
+                  3380, 3406, 3428, 3430}
         while len(nf) > cap:
             need = len(nf) - cap
             ranked = []
@@ -285,6 +310,13 @@ def main():
         new_files['/msg/' + name] = nf
         for u in units:
             ci = choice.get(u['id'])
+            selected_formal.append({
+                'id': u['id'],
+                'src': name,
+                'jp': u['jp'],
+                'tag': 'jp' if ci is None else cand[u['id']][ci][0],
+                'kr': None if ci is None else cand[u['id']][ci][1],
+            })
             stats['jp' if ci is None else cand[u['id']][ci][0]] += 1
             # record units that had to fall back, with the byte budget they must
             # respect, so a dedicated "natural but concise" pass can replace them
@@ -300,6 +332,9 @@ def main():
         grow = len(nf) - orig_size
         print(f'  {name}: {orig_size} -> {len(nf)} ({grow:+d}, demotions={demotions})')
     print('msgsec unit sources:', stats)
+    json.dump(selected_formal,
+              open(_os.path.join(WORK, 'formal_ui_selected.json'), 'w', encoding='utf-8'),
+              ensure_ascii=False, indent=0)
     json.dump(demoted, open(_os.path.join(WORK, 'demoted.json'), 'w', encoding='utf-8'),
               ensure_ascii=False, indent=0)
     print('units needing a concise-but-natural rewrite:', len(demoted))
@@ -311,6 +346,24 @@ def main():
         for fn in sorted(os.listdir(gfx_dir)):
             gfx_files['/obj/' + fn] = open(os.path.join(gfx_dir, fn), 'rb').read()
     print('graphics files patched:', len(gfx_files))
+
+    # ---- title background: remove the baked-in Japanese prompt from the
+    #     lower title screen.  The clean reference is quantised to the
+    #     existing 8bpp palette, then written through the CSK codec without
+    #     changing GrpBGInfo offsets or the resource size. -----------------
+    bg_path = _os.path.join(WORK, 'fs', 'bg', 'GrpBG.dat')
+    bg_info_path = _os.path.join(WORK, 'fs', 'bg', 'GrpBGInfo.dat')
+    bg_files = {}
+    if os.path.exists(bg_path) and os.path.exists(bg_info_path):
+        bg_data = open(bg_path, 'rb').read()
+        bg_info = open(bg_info_path, 'rb').read()
+        reference = _os.path.join(DATA, 'reference', 'title_bottom_clean.png')
+        patched_bg, bg_stats = bg_patch.patch_title_bottom(
+            bg_data, bg_info, reference)
+        bg_files['/bg/GrpBG.dat'] = patched_bg
+        print('title background patched:', bg_stats)
+    else:
+        raise SystemExit('GrpBG source files are missing; cannot apply issue #4 fix')
 
     # ---- ROM assembly: keep everything in place; relocate only grown files to the tail ----
     rom = bytearray(open(ROM_IN, 'rb').read())
@@ -328,6 +381,11 @@ def main():
         if p in gfx_files:
             g = gfx_files[p]
             assert len(g) == f['size'], f'{p}: graphics size changed'
+            rom[f['start']: f['start'] + len(g)] = g
+            continue
+        if p in bg_files:
+            g = bg_files[p]
+            assert len(g) == f['size'], f'{p}: background size changed'
             rom[f['start']: f['start'] + len(g)] = g
             continue
         if p not in new_files:
