@@ -13,7 +13,7 @@
 ## 적용 방법
 
 1. 본인이 소유한 **일본판 ROM**을 준비합니다. (원본 CRC32 `72C536BA`)
-2. [릴리즈](https://github.com/snake7594/nobunaga-ds2-kr/releases)에서 `nobu2-kr.xdelta` 를 받습니다.
+2. [릴리즈](https://github.com/snake759494/nobunaga-ds2-korean-patch/releases)에서 `nobu2-kr.xdelta` 를 받습니다.
 3. xdelta 도구로 적용합니다.
    ```
    xdelta3 -d -s "Nobunaga no Yabou DS 2 (Japan).nds" nobu2-kr.xdelta "한글판.nds"
@@ -84,7 +84,7 @@
   단일행 레이아웃으로 재현할 수 없습니다.
 - 시작 화면의 정적 `GrpBG` 안내문은 일본어 문구를 제거하고 일반 메시지 레이어만
   표시하도록 수정했습니다. `버튼을 누르거나 / 아래 화면을 터치하세요`가 중복으로
-  보이지 않아야 합니다(이슈 #4).
+  보이지 않아야 합니다(이전 저장소 이슈 #4).
 - **일러스트에 캡션이 얹힌 그래픽**은 그림을 훼손하지 않도록 캡션 영역만 정리한 뒤
   한국어 캡션을 표시합니다. 이번 릴리즈의 계절·아이콘 메뉴·시작 메뉴 비교 시트의
   오른쪽 결과에는 해당 캡션의 일본어가 남지 않습니다. 라벨 매니페스트에 없는

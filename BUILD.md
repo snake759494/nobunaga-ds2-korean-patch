@@ -18,8 +18,8 @@ ROM은 **본인이 소유한 카트리지에서 직접 덤프**해야 합니다.
 저장소에는 포함하지 않으며, 요청에도 제공하지 않습니다.
 
 ```bash
-git clone https://github.com/snake7594/nobunaga-ds2-kr
-cd nobunaga-ds2-kr
+git clone https://github.com/snake759494/nobunaga-ds2-korean-patch
+cd nobunaga-ds2-korean-patch
 pip install -r requirements.txt
 ```
 
