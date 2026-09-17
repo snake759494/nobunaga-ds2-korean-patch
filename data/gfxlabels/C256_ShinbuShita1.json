@@ -1,4 +1,23 @@
 [
-  {"cell": 0, "jp": "作成", "kr": "작성", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
-  {"cell": 5, "jp": "削除", "kr": "삭제", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}}
+ {
+  "cell": 0,
+  "jp": "作成",
+  "kr": "작성",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 5,
+  "jp": "再編集",
+  "kr": "재편집",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 10,
+  "jp": "削除",
+  "kr": "삭제",
+  "size": 12,
+  "force": true
+ }
 ]

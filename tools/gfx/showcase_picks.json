@@ -1,28 +1,258 @@
 [
- {"title": "전략 메뉴", "slug": "menu",
-  "cells": [["SenryakuMainShita", 0], ["SenryakuMainShita", 5],
-            ["SenryakuMainShita", 20], ["SenryakuMainShita", 25],
-            ["SenryakuMainShita", 30], ["SenryakuMainShita", 35]]},
- {"title": "정보 항목", "slug": "info",
-  "cells": [["SenryakuHannyou", 2], ["SenryakuHannyou", 6],
-            ["SenryakuHannyou", 10], ["SenryakuHannyou", 14],
-            ["SenryakuHannyou", 18], ["SenryakuHannyou", 22]]},
- {"title": "전투 명령", "slug": "battle",
-  "cells": [["HexUnit", 128], ["HexUnit", 138], ["HexUnit", 148],
-            ["HexUnit", 158], ["HexUnit", 168], ["HexUnit", 183]]},
- {"title": "전법", "slug": "skill",
-  "cells": [["HexSelSen", 0], ["HexSelSen", 5], ["HexSelSen", 20],
-            ["HexSelSen", 30], ["HexSelSen", 40], ["HexSelSen", 55]]},
- {"title": "시작 화면", "slug": "title",
-  "cells": [["MainKunisentaku", 0], ["MainKunisentaku", 8],
-            ["MainKunisentaku", 11], ["MainKunisentaku", 22],
-            ["MainKunisentaku", 28], ["MainKunisentaku", 31]]},
- {"title": "쟁패 시나리오", "slug": "scenario",
-  "cells": [["SouhaUe", 33], ["SouhaUe", 38], ["SouhaUe", 45],
-            ["SouhaUe", 49], ["SouhaUe", 53], ["SouhaUe", 34]]},
- {"title": "그림 캡션", "slug": "subtitle",
-  "cells": [["C256_ShinbuShita1", 0], ["C256_ShinbuShita1", 5],
-            ["C256_SeasonSpring", 0], ["C256_SeasonSummer", 0],
-            ["C256_SeasonFall", 0], ["C256_SeasonWinter", 0],
-            ["C256_SouhaMenuShita", 0], ["C256_ShoOptShita", 0]]}
+ {
+  "title": "전략 메뉴",
+  "slug": "menu",
+  "cells": [
+   [
+    "SenryakuMainShita",
+    0
+   ],
+   [
+    "SenryakuMainShita",
+    5
+   ],
+   [
+    "SenryakuMainShita",
+    20
+   ],
+   [
+    "SenryakuMainShita",
+    25
+   ],
+   [
+    "SenryakuMainShita",
+    30
+   ],
+   [
+    "SenryakuMainShita",
+    35
+   ]
+  ]
+ },
+ {
+  "title": "정보 항목",
+  "slug": "info",
+  "cells": [
+   [
+    "SenryakuHannyou",
+    2
+   ],
+   [
+    "SenryakuHannyou",
+    6
+   ],
+   [
+    "SenryakuHannyou",
+    10
+   ],
+   [
+    "SenryakuHannyou",
+    14
+   ],
+   [
+    "SenryakuHannyou",
+    18
+   ],
+   [
+    "SenryakuHannyou",
+    22
+   ]
+  ]
+ },
+ {
+  "title": "전투 명령",
+  "slug": "battle",
+  "cells": [
+   [
+    "HexUnit",
+    128
+   ],
+   [
+    "HexUnit",
+    138
+   ],
+   [
+    "HexUnit",
+    148
+   ],
+   [
+    "HexUnit",
+    158
+   ],
+   [
+    "HexUnit",
+    168
+   ],
+   [
+    "HexUnit",
+    183
+   ]
+  ]
+ },
+ {
+  "title": "전법",
+  "slug": "skill",
+  "cells": [
+   [
+    "HexSelSen",
+    0
+   ],
+   [
+    "HexSelSen",
+    5
+   ],
+   [
+    "HexSelSen",
+    20
+   ],
+   [
+    "HexSelSen",
+    30
+   ],
+   [
+    "HexSelSen",
+    40
+   ],
+   [
+    "HexSelSen",
+    55
+   ]
+  ]
+ },
+ {
+  "title": "시작 화면",
+  "slug": "title",
+  "cells": [
+   [
+    "MainKunisentaku",
+    0
+   ],
+   [
+    "MainKunisentaku",
+    8
+   ],
+   [
+    "MainKunisentaku",
+    11
+   ],
+   [
+    "MainKunisentaku",
+    22
+   ],
+   [
+    "MainKunisentaku",
+    28
+   ],
+   [
+    "MainKunisentaku",
+    31
+   ]
+  ]
+ },
+ {
+  "title": "쟁패 시나리오",
+  "slug": "scenario",
+  "cells": [
+   [
+    "SouhaUe",
+    33
+   ],
+   [
+    "SouhaUe",
+    38
+   ],
+   [
+    "SouhaUe",
+    45
+   ],
+   [
+    "SouhaUe",
+    49
+   ],
+   [
+    "SouhaUe",
+    53
+   ],
+   [
+    "SouhaUe",
+    34
+   ]
+  ]
+ },
+ {
+  "title": "그림 캡션",
+  "slug": "subtitle",
+  "cells": [
+   [
+    "C256_ShinbuShita1",
+    0
+   ],
+   [
+    "C256_ShinbuShita1",
+    5
+   ],
+   [
+    "C256_SeasonSpring",
+    0
+   ],
+   [
+    "C256_SeasonSummer",
+    0
+   ],
+   [
+    "C256_SeasonFall",
+    0
+   ],
+   [
+    "C256_SeasonWinter",
+    0
+   ],
+   [
+    "C256_SouhaMenuShita",
+    0
+   ],
+   [
+    "C256_ShoOptShita",
+    0
+   ]
+  ]
+ },
+ {
+  "title": "시작 메뉴",
+  "slug": "startmenu",
+  "cells": [
+   [
+    "C256_ShoMainShita",
+    0
+   ],
+   [
+    "C256_ShoMainShita",
+    5
+   ],
+   [
+    "C256_ShoMainShita",
+    8
+   ],
+   [
+    "C256_ShoMainShita",
+    11
+   ],
+   [
+    "C256_ShoMainShita",
+    14
+   ],
+   [
+    "C256_ShoMainShita",
+    17
+   ],
+   [
+    "C256_ShoMainShita",
+    20
+   ],
+   [
+    "C256_ShoOptShita",
+    14
+   ]
+  ]
+ }
 ]

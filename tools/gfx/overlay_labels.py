@@ -42,11 +42,35 @@ def lum(rgb):
     return 0.30*r + 0.59*g + 0.11*b
 
 def palette_ink(info, src, W, H):
-    """The palette entries closest to white and to black, chosen from the
-    colours this cell actually uses.  The palette is indexed exactly the way
-    label_tools renders it, so 4bpp banks and 256-colour sheets both work."""
+    """The palette entries to use for the white letters and the black outline.
+
+    4bpp: the entries closest to white and to black among the colours this
+    cell actually uses (a 16-entry bank rarely has a spare white).
+    8bpp: every bank has 256 entries, so pick the brightest and the darkest
+    entry of the whole bank - the caption must read as white-on-black, not as
+    cream-on-brown, whichever colours the picture happens to use.  Cells that
+    share tiles but select a different bank (a dimmed button) are checked too:
+    the chosen entries must stay light/dark in every bank the sheet uses."""
     pal, vals = info['pal'], info['vals']
     if not pal: return None
+    banks = set()
+    for y in range(H):
+        for x in range(W):
+            s = src[y][x]
+            if s is not None: banks.add(s[2] if len(s) > 2 else 0)
+    if info.get('bpp') == 8:
+        sheet_banks = {s.get('pal', 0) for bk in info['ncer']['banks'] for s in bk['sprites']}
+        cand = list(range(1, 256))
+        def score(v, want_white):
+            ls = [lum(pal[lt.pal_index(info, b, v)]) for b in sheet_banks
+                  if lt.pal_index(info, b, v) < len(pal)]
+            if not ls: return -1
+            return min(ls) if want_white else 255 - max(ls)
+        white = max(cand, key=lambda v: score(v, True))
+        black = max(cand, key=lambda v: score(v, False))
+        if score(white, True) < 170 or score(white, True) - (255 - score(black, False)) < 90:
+            return None
+        return white, black
     seen = {}
     for y in range(H):
         for x in range(W):
@@ -54,7 +78,7 @@ def palette_ink(info, src, W, H):
             if s is None: continue
             v = vals[s[0]*64 + s[1]]
             if v == 0: continue                     # transparent
-            pi = (s[2] if len(s) > 2 else 0)*16 + v
+            pi = lt.pal_index(info, s[2] if len(s) > 2 else 0, v)
             if pi < len(pal): seen.setdefault(v, pal[pi])
     if len(seen) < 2: return None
     white = max(seen.items(), key=lambda kv: lum(kv[1]))[0]
@@ -254,6 +278,10 @@ def main(dat_in, labels_json, dat_out):
         # these captions run along the bottom edge of the icon; small buttons
         # carry their text in the middle
         oy = (H - th)//2 if H <= 40 else max(0, H - th - 2)
+        # a caption painted in the middle of the picture (the season discs)
+        # is covered best by a subtitle placed right over it
+        if e.get('pos') == 'center':
+            oy = (H - th)//2
 
         # a twin cell - the same art one pixel over - has already written most
         # of these tiles; drawing again would print the subtitle twice
@@ -286,6 +314,23 @@ def main(dat_in, labels_json, dat_out):
         else:
             skipped += 1
 
+    # a dimmed or offset animation frame reuses the same tiles, so it now
+    # carries the subtitle too; record the same rectangle for it so the
+    # damage audit knows the change there is intentional
+    def tile_keys(j):
+        r = lt.cell_pixels(info, j)
+        if r is None: return None
+        W, H, src = r
+        return (W, H), {src[y][x][0]*64 + src[y][x][1]
+                        for y in range(H) for x in range(W) if src[y][x]}
+    drawn_keys = {i_: tile_keys(int(i_)) for i_ in list(rects)}
+    for j in range(nbanks):
+        if str(j) in rects: continue
+        kj = tile_keys(j)
+        if not kj or not kj[1]: continue
+        for i_, ki in drawn_keys.items():
+            if ki and ki[0] == kj[0] and len(kj[1] & ki[1]) >= 0.5*len(kj[1]):
+                rects[str(j)] = rects[i_]; break
     ok = lt.save_ncgr(info, dat_in, dat_out)
     rd = os.path.join(os.path.dirname(os.path.dirname(dat_out)), 'rects')
     os.makedirs(rd, exist_ok=True)

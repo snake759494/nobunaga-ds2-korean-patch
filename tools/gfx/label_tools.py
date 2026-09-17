@@ -12,8 +12,21 @@ from nobu2_paths import ROM_IN, ROM_OUT, WORK, FONT, DATA
 
 BOUNDARY = 4   # mappingMode 2 => 128-byte boundary => 4 tiles per index step (4bpp)
 
-def cell_pixels(info, bank_idx, boundary=BOUNDARY):
+def tile_boundary(info, boundary=None):
+    """Tiles per OAM tile-index step.  mappingMode 2 is a 128-byte boundary:
+    four 32-byte tiles at 4bpp, but only two 64-byte tiles at 8bpp.  The 256
+    colour sheets were read with the 4bpp step for a long time, which sent
+    every cell after the first to the wrong picture."""
+    if boundary is not None: return boundary
+    return 2 if info.get('bpp') == 8 else BOUNDARY
+
+def pal_index(info, palbank, v):
+    """NCLR entry for a pixel value: 16-entry banks at 4bpp, 256 at 8bpp."""
+    return palbank*(256 if info.get('bpp') == 8 else 16) + v
+
+def cell_pixels(info, bank_idx, boundary=None):
     """return (W, H, grid[y][x] = (tile, k, palbank) source location, values)"""
+    boundary = tile_boundary(info, boundary)
     bk = info['ncer']['banks'][bank_idx]
     sp = bk['sprites']
     if not sp: return None
@@ -38,7 +51,7 @@ def cell_pixels(info, bank_idx, boundary=BOUNDARY):
                         src[Y][X] = (t, k, palbank)
     return W, H, src
 
-def cell_image(info, bank_idx, scale=3, boundary=BOUNDARY):
+def cell_image(info, bank_idx, scale=3, boundary=None):
     r = cell_pixels(info, bank_idx, boundary)
     if r is None: return None
     W, H, src = r
@@ -51,11 +64,11 @@ def cell_image(info, bank_idx, scale=3, boundary=BOUNDARY):
             if s is None: continue
             v = vals[s[0]*64 + s[1]]
             palbank = s[2] if len(s) > 2 else 0
-            pi = palbank*16 + v
+            pi = pal_index(info, palbank, v)
             px[x, y] = pal[pi] if pal and pi < len(pal) else ((v*16,)*3)
     return img.resize((W*scale, H*scale), Image.NEAREST)
 
-def color_hist(info, bank_idx, boundary=BOUNDARY):
+def color_hist(info, bank_idx, boundary=None):
     r = cell_pixels(info, bank_idx, boundary)
     if r is None: return {}
     W, H, src = r
@@ -71,7 +84,7 @@ def color_hist(info, bank_idx, boundary=BOUNDARY):
 
 def redraw_cell_text(info, bank_idx, text, box, ink, bg,
                      font_path=FONT, font_size=12,
-                     boundary=BOUNDARY):
+                     boundary=None):
     """Clear `box` (x,y,w,h) to `bg` and draw `text` in `ink` inside the cell,
     writing results back into info['vals'] (the NCGR pixel array)."""
     r = cell_pixels(info, bank_idx, boundary)

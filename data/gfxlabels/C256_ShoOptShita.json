@@ -1,6 +1,51 @@
 [
-  {"cell": 0, "jp": "武将ファイル", "kr": "무장파일", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
-  {"cell": 3, "jp": "兵法教書", "kr": "병법교서", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
-  {"cell": 8, "jp": "データ消去", "kr": "데이터삭제", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
-  {"cell": 11, "jp": "戦術", "kr": "전술", "size": 12, "manual": {"replace": true, "cover": [6, 6, 52, 24], "text_box": [6, 6, 52, 24], "bg": 1}}
+ {
+  "cell": 0,
+  "jp": "武将ファイル",
+  "kr": "무장파일",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 3,
+  "jp": "SP武将ファイル",
+  "kr": "SP무장파일",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 8,
+  "jp": "兵法教書",
+  "kr": "병법교서",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 14,
+  "jp": "データ消去",
+  "kr": "데이터삭제",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 17,
+  "jp": "戦略",
+  "kr": "전략",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 18,
+  "jp": "合戦",
+  "kr": "전쟁",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 19,
+  "jp": "戦術",
+  "kr": "전술",
+  "size": 12,
+  "force": true
+ }
 ]

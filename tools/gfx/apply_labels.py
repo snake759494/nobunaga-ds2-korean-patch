@@ -71,7 +71,7 @@ def analyse(info, idx):
     pb = banks.most_common(1)[0][0] if banks else 0
 
     def lum(v):
-        pi = pb*16 + v
+        pi = lt.pal_index(info, pb, v)
         if not pal or pi >= len(pal): return v * 16
         r_, g_, b_ = pal[pi]
         return 0.30*r_ + 0.59*g_ + 0.11*b_
@@ -210,7 +210,7 @@ def manual_tiles(info, idx, entry):
         except (IndexError, TypeError, ValueError):
             continue
         tw, th = s['w'] // 8, s['h'] // 8
-        base = s['tile'] * lt.BOUNDARY
+        base = s['tile'] * lt.tile_boundary(info)
         for ty in range(th):
             for tx in range(tw):
                 out.add(base + ty * tw + tx)

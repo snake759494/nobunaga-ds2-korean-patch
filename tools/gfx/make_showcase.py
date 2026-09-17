@@ -57,7 +57,7 @@ def cell_rgba(info, idx, scale=SCALE):
             if s is None: continue
             v = vals[s[0]*64 + s[1]]
             if v == 0: continue
-            pi = (s[2] if len(s) > 2 else 0)*16 + v
+            pi = lt.pal_index(info, s[2] if len(s) > 2 else 0, v)
             c = pal[pi] if pal and pi < len(pal) else ((v*16,)*3)
             px[x, y] = (c[0], c[1], c[2], 255)
     return img.resize((W*scale, H*scale), Image.NEAREST)

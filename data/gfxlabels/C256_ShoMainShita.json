@@ -1,10 +1,219 @@
 [
- {"cell": 0, "jp": "続きから", "kr": "계속해서", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1, "ink": 223, "outline": 241}},
- {"cell": 3, "jp": "続きから", "kr": "계속해서", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1, "ink": 223, "outline": 241}},
- {"cell": 5, "jp": "初めから", "kr": "처음부터", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
- {"cell": 8, "jp": "群雄争覇", "kr": "군웅쟁패", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
- {"cell": 11, "jp": "新武将登録", "kr": "신무장등록", "size": 12, "force": true, "manual": {"replace": true, "cover": [0, 38, 56, 26], "text_box": [0, 42, 56, 20], "bg": 1}},
- {"cell": 14, "jp": "戦国通信", "kr": "전국통신", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
- {"cell": 17, "jp": "チュートリアル", "kr": "튜토리얼", "size": 12, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}},
- {"cell": 20, "jp": "オプション", "kr": "옵션", "size": 12, "force": true, "manual": {"replace": true, "cover": [0, 38, 64, 26], "text_box": [0, 42, 64, 20], "bg": 1}}
+ {
+  "cell": 0,
+  "jp": "続きから",
+  "kr": "계속해서",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 5,
+  "jp": "初めから",
+  "kr": "처음부터",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 8,
+  "jp": "群雄争覇",
+  "kr": "군웅쟁패",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 11,
+  "jp": "新武将登録",
+  "kr": "신무장등록",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 14,
+  "jp": "戦国通信",
+  "kr": "전국통신",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 17,
+  "jp": "チュートリアル",
+  "kr": "튜토리얼",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 20,
+  "jp": "オプション",
+  "kr": "옵션",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 23,
+  "jp": "入門",
+  "kr": "입문",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 24,
+  "jp": "入門",
+  "kr": "입문",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 25,
+  "jp": "実力",
+  "kr": "실력",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 26,
+  "jp": "実力",
+  "kr": "실력",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 27,
+  "jp": "初級",
+  "kr": "초급",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 28,
+  "jp": "初級",
+  "kr": "초급",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 29,
+  "jp": "上級",
+  "kr": "상급",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 30,
+  "jp": "上級",
+  "kr": "상급",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 31,
+  "jp": "標準",
+  "kr": "표준",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 32,
+  "jp": "標準",
+  "kr": "표준",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 33,
+  "jp": "停止",
+  "kr": "정지",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 34,
+  "jp": "停止",
+  "kr": "정지",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 35,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 36,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 37,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 38,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 39,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 40,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 41,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 42,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 43,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 44,
+  "jp": "あり",
+  "kr": "있음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 45,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 46,
+  "jp": "なし",
+  "kr": "없음",
+  "size": 12,
+  "force": true
+ }
 ]

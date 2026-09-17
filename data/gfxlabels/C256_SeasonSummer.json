@@ -1,1 +1,10 @@
-[{"cell": 0, "jp": "夏", "kr": "여름", "size": 24, "manual": {"replace": true, "cover": [24, 12, 48, 40], "text_box": [24, 12, 48, 40], "bg": 1}}]
+[
+ {
+  "cell": 0,
+  "jp": "夏",
+  "kr": "여름",
+  "size": 24,
+  "force": true,
+  "pos": "center"
+ }
+]
