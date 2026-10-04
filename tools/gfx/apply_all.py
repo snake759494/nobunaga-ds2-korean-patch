@@ -78,17 +78,32 @@ OVERLAY = {
     'C256_SeasonSpring', 'C256_SeasonSummer', 'C256_SeasonFall', 'C256_SeasonWinter',
     'C256_SouhaMenuShita', 'C256_ShoOptShita', 'C256_ShinbuShita1',
     'C256_ShoMainShita',
+    # splashes where the Japanese is brush art: the souha result banners and
+    # the 猛将/勇将/知将 calligraphy.  Text-only banners (C256_ShoMainUe,
+    # C256_SaveLoadUe) are redrawn instead - a subtitle laid over letters of
+    # the same size reads worse than the original.
+    'C256_SouhaUe', 'HexInfo256',
 }
+# 256-colour sheets whose cells are plain text banners on a flat plate: the
+# Japanese is the whole content, so it is erased and the Korean drawn in its
+# place, exactly like the 16-colour menus.  A subtitle would sit on top of
+# letters its own size and read worse than the untouched original.
+REDRAW = {'C256_ShoMainUe', 'C256_SaveLoadUe'}
+
 # Common, ComTutor and SaveLoadShita use the normal shared-atlas redraw path.
 # They were previously skipped because the first detector was too conservative.
 
 def overlay_only(name):
-    return skipped(name) and name in OVERLAY
+    # OVERLAY lists every sheet that takes a subtitle instead of a redraw.
+    # Most are C256_* illustration sheets, but a 256-colour sheet without that
+    # prefix (HexInfo256) needs the same treatment.
+    return name in OVERLAY
 
 def prepare(lp):
     """validate + expand one label file; returns (name, entries) or None"""
     name = os.path.splitext(os.path.basename(lp))[0]
-    if name.startswith('_') or (skipped(name) and name not in OVERLAY): return None
+    if name.startswith('_') or (skipped(name) and name not in OVERLAY
+            and name not in REDRAW): return None
     dat = os.path.join(SRC_OBJ, name + '.dat')
     if not os.path.exists(dat):
         print(f'  skip {name}: no .dat'); return None

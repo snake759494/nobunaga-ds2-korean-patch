@@ -2,7 +2,7 @@
 
 이 저장소만 있으면 **원본 ROM 한 개**를 빼고는 아무것도 더 필요하지 않습니다.
 번역문, 폰트, 라벨, 도구가 전부 들어 있고, 빌드 결과는 배포된 릴리즈와
-**바이트 단위로 동일**합니다 (CRC32 `52EA6030`).
+**바이트 단위로 동일**합니다 (CRC32 `24C70E29`).
 
 ---
 
@@ -55,7 +55,7 @@ $env:NOBU2_ROM="D:\roms\nobunaga2.nds"; python build.py
 마지막에 이렇게 나오면 성공입니다.
 
 ```
-patched CRC32 52EA6030  (matches the published release)
+patched CRC32 24C70E29  (matches the published release)
 ```
 
 ---
@@ -113,6 +113,7 @@ tools/
   msg_rebuild.py         msgsec 컨테이너 재조립 (내부 포인터 재계산)
   bg_csk.py              GrpBG CSK 압축·해제 (ARM9 디코더와 동일한 문법)
   bg_patch.py            하단 타이틀 정적 안내문 제거
+  bg_labels.py           배경에 그려진 메뉴 배너를 한글로 다시 그림
   snr_caps.py            common.snr 필드 용량 계산
   patch_build4.py        본 빌더
   verify_*.py            검증
@@ -270,7 +271,7 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 |---|---|
 | `verify_snr_safe.py` | `common.snr` 의 **텍스트 필드 밖 바이트가 0개** 변경 — 무장 얼굴 번호 같은 이진 필드 보호 |
 | `verify_formal_ui.py` | 선택된 일반 UI 2,000여 건이 하십시오체·격식 질문형을 유지하고, 고정폭 후보가 다시 비격식형으로 되돌아가지 않는지 확인 |
-| `verify_bg_patch.py` | GrpBG 123번 블록만 변경, Info/FAT 오프셋 유지, 깨끗한 256×192 화면으로 복원되는지 확인 |
+| `verify_bg_patch.py` | GrpBG 123번 블록과 배너 블록만 변경, Info/FAT 오프셋 유지, 배너 변경이 판 사각형 안에만 있는지 확인 |
 | `verify_layout2.py` | FNT·ARM7 동일, FAT 282엔트리 겹침 0, 허용 구역 밖 변경 0 |
 | `check_damage.py` | 그래픽에서 허용 사각형 밖으로 샌 픽셀 집계 |
 
@@ -326,6 +327,26 @@ python tools/gfx/compare_cells.py SenryakuMainShita out.png 0,5,20 4
 python tools/verify_bg_patch.py
 ```
 
+### 배경에 그려진 메뉴 배너
+
+`시작 메뉴`·`저장`·`전적` 같은 화면 제목은 스프라이트가 아니라 배경 그림에
+구워져 있어 스프라이트 패처가 보지 못합니다. `tools/bg_labels.py` 가
+`data/reference/bg_labels.json` 의 목록대로 해당 CSK 블록을 풀어, 틀 안쪽
+판을 한 줄씩 가장자리 기준 색으로 평탄화한 뒤 한글을 흰 글자 + 검은
+테두리로 그립니다. 원문 글자 뒤의 발광 효과는 복원할 수 없어 판 전체를
+단색으로 정리합니다.
+
+```json
+{"block": 121, "jp": "スタートメニュー", "kr": "시작 메뉴",
+ "plate": [2, 2, 140, 20], "ref_col": 3, "size": 12}
+```
+
+- `plate` 는 틀 안쪽 사각형입니다. 이 양식의 배너는 모두 `[2, 2, 140, 20]` 입니다.
+- 글자 색은 블록마다 다른 팔레트에서 **흰색·검정에 가장 가까운 항목**을 자동으로 고릅니다.
+- 보이는 타일맵에서 **한 번만 쓰이는 타일**만 건드립니다. 공유 타일이 섞이면 오류로 멈춥니다.
+- 블록은 원래 용량 안에서 다시 압축되므로 `GrpBGInfo` 오프셋과 파일 크기가 그대로입니다.
+- `python tools/verify_bg_patch.py` 가 판 밖 픽셀이 하나라도 바뀌면 실패합니다.
+
 ### 제외된 파일 되살리기
 
 `tools/gfx/apply_all.py` 의 `SKIP` 과 `skipped()` 를 보세요. 일러스트에 캡션이
@@ -348,7 +369,7 @@ python tools/verify_bg_patch.py
 **`ModuleNotFoundError: PIL`**
 `pip install -r requirements.txt`
 
-**CRC가 `52EA6030` 과 다르게 나옴**
+**CRC가 `24C70E29` 과 다르게 나옴**
 `data/` 나 `tools/` 를 수정했다면 정상입니다. 수정한 적이 없는데 다르다면
 `_work/` 를 지우고 처음부터 다시 돌려 보세요.
 

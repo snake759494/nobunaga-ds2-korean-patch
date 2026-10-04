@@ -10,6 +10,7 @@ import json, glob, os, struct, sys, collections
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import krtools, msg_rebuild
 import bg_patch
+import bg_labels
 import formal_ui
 import snr_caps as _snr
 import os as _os, sys as _sys
@@ -360,8 +361,11 @@ def main():
         reference = _os.path.join(DATA, 'reference', 'title_bottom_clean.png')
         patched_bg, bg_stats = bg_patch.patch_title_bottom(
             bg_data, bg_info, reference)
+        patched_bg, banner_stats = bg_labels.patch_banners(
+            patched_bg, bg_info, DATA, FONT)
         bg_files['/bg/GrpBG.dat'] = patched_bg
         print('title background patched:', bg_stats)
+        print(f'background banners patched: {len(banner_stats)}')
     else:
         raise SystemExit('GrpBG source files are missing; cannot apply issue #4 fix')
 

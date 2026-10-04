@@ -1,1 +1,23 @@
-[]
+[
+ {
+  "cell": 20,
+  "jp": "猛将",
+  "kr": "맹장",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 21,
+  "jp": "勇将",
+  "kr": "용장",
+  "size": 12,
+  "force": true
+ },
+ {
+  "cell": 22,
+  "jp": "知将",
+  "kr": "지장",
+  "size": 12,
+  "force": true
+ }
+]

@@ -5,6 +5,11 @@
   "sheets": 1
  },
  {
+  "file": "C256_SaveLoadUe",
+  "cells": 1,
+  "sheets": 1
+ },
+ {
   "file": "C256_SeasonFall",
   "cells": 1,
   "sheets": 1
@@ -35,6 +40,11 @@
   "sheets": 2
  },
  {
+  "file": "C256_ShoMainUe",
+  "cells": 2,
+  "sheets": 1
+ },
+ {
   "file": "C256_ShoOptShita",
   "cells": 7,
   "sheets": 1
@@ -42,6 +52,11 @@
  {
   "file": "C256_SouhaMenuShita",
   "cells": 3,
+  "sheets": 1
+ },
+ {
+  "file": "C256_SouhaUe",
+  "cells": 6,
   "sheets": 1
  },
  {
@@ -62,6 +77,11 @@
  {
   "file": "HexChalSuc",
   "cells": 7,
+  "sheets": 1
+ },
+ {
+  "file": "HexInfo256",
+  "cells": 3,
   "sheets": 1
  },
  {
